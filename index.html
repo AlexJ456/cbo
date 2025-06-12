@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <!-- Lock viewport size / disable zoom & scroll -->
+    <meta name="viewport"
+          content="width=device-width, initial-scale=1.0,
+                   maximum-scale=1.0, minimum-scale=1.0,
+                   user-scalable=no">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+    <title>Coherent Breathing</title>
+
+    <link rel="manifest" href="manifest.json">
+
+    <style>
+        /* --- General layout / colour theme (unchanged) --- */
+        body {
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: black;
+            color: #ffedd5;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+        }
+
+        /* Offline banner */
+        #offline-notification {
+            position: fixed;
+            top: 10px;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #92400e;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 4px;
+            z-index: 1000;
+            display: none;
+        }
+
+        /* --- Containers --- */
+        .container {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: flex-start;
+            width: 100%;
+            height: 100vh;
+            padding: 1rem;
+            box-sizing: border-box;
+        }
+
+        /* Canvas now used for vertical-line animation */
+        #breath-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;   /* behind all UI */
+        }
+
+        #app-content {
+            position: relative;
+            z-index: 1;
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* --- Typography --- */
+        h1 {
+            font-size: 2.5rem;
+            font-weight: bold;
+            margin: 0 0 2rem 0;
+            color: #fcd34d;
+        }
+        .instruction {
+            font-size: 2rem;
+            margin-bottom: 1.5rem;
+            color: #fdba74;
+            align-self: flex-start;      /* left side */
+        }
+        .countdown {
+            font-size: 4rem;
+            font-weight: bold;
+            margin-bottom: 2rem;
+            color: #ff6b6b;
+            align-self: flex-start;      /* left side */
+        }
+        .prompt {
+            font-size: 1.5rem;
+            margin-bottom: 2rem;
+            color: #fde68a;
+        }
+        .complete {
+            font-size: 2rem;
+            margin-bottom: 2rem;
+            color: #4ade80;
+        }
+        .timer {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            color: #fde68a;
+            z-index: 2;
+            font-size: 1rem;
+        }
+
+        /* --- Forms & buttons (original colours) --- */
+        .settings { display: flex; flex-direction: column; align-items: center; gap: 1rem; margin-bottom: 2rem; }
+        .form-group { display: flex; align-items: center; gap: .5rem; }
+
+        input[type="number"]{
+            background:#78350f;color:#ffedd5;border:1px solid #d97706;
+            padding:.5rem;border-radius:.25rem;font-size:16px;width:6rem;text-align:center;
+        }
+        label{color:#fde68a;display:flex;align-items:center;}
+
+        button{
+            font-size:1.25rem;padding:.75rem 1.5rem;
+            background:linear-gradient(to bottom,#d97706,#b45309);
+            color:black;border:none;border-radius:.25rem;cursor:pointer;
+            display:flex;align-items:center;justify-content:center;gap:.5rem;
+            box-shadow:0 3px 6px rgba(0,0,0,.4);
+        }
+        button:hover{background:linear-gradient(to bottom,#b45309,#92400e);}
+        .preset-button{font-size:1rem;padding:.5rem 1rem;background:#92400e;color:#ffedd5;}
+        .preset-button:hover{background:#78350f;}
+
+        /* Toggle switch (sound) */
+        .switch{position:relative;display:inline-block;width:48px;height:24px;}
+        .switch input{opacity:0;width:0;height:0;}
+        .slider{position:absolute;cursor:pointer;top:0;left:0;right:0;bottom:0;
+                background:#374151;transition:.4s;border-radius:24px;}
+        .slider:before{position:absolute;content:"";height:18px;width:18px;left:3px;bottom:3px;
+                       background:white;transition:.4s;border-radius:50%;}
+        input:checked + .slider{background:#d97706;}
+        input:checked + .slider:before{transform:translateX(24px);}
+
+        .shortcut-buttons{display:flex;gap:.5rem;margin-top:1.5rem;flex-wrap:wrap;justify-content:center;}
+        .icon{width:24px;height:24px;stroke-width:2;stroke:currentColor;fill:none;stroke-linecap:round;stroke-linejoin:round;}
+
+        /* Pause button fixed lower on screen while exercising */
+        .pause-button{
+            position:fixed;
+            bottom:2rem;
+            left:50%;
+            transform:translateX(-50%);
+        }
+    </style>
+</head>
+<body>
+
+    <div id="offline-notification">You are offline, but the app will work normally</div>
+
+    <div class="container">
+        <canvas id="breath-canvas"></canvas>
+        <div id="app-content"></div>
+    </div>
+
+    <script src="app.js"></script>
+
+    <!-- Service-worker registration (unchanged) -->
+    <script>
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('service-worker.js')
+                    .then(reg => console.log('SW registered:', reg.scope))
+                    .catch(err => console.log('SW registration failed:', err));
+            });
+        }
+    </script>
+</body>
+</html>
